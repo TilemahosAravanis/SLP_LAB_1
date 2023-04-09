@@ -43,6 +43,6 @@ def run_spell_checker(pairs, corrector):
 
 
 if __name__ == "__main__":
-    pairs = read_test_set(os.path.join(SCRIPT_DIRECTORY, "../data/spell_test.txt"))
+    pairs = read_test_set("./data/spell_test.txt")
     corrector = sys.argv[1]
     run_spell_checker(pairs, corrector)
