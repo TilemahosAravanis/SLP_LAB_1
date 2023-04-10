@@ -54,27 +54,37 @@ def train_w2v_model(
         epochs (int): How many epochs should the training run
         min_word_count (int): Ignore words that appear less than min_word_count times
     """
-    raise NotImplementedError("You should use gensim to train your w2v model")
-    workers = multiprocessing.cpu_count()
-
+    workers=multiprocessing.cpu_count()
     # TODO: Instantiate gensim.models.Word2Vec class
-    model = ...
+    model = Word2Vec(sentences=sentences, size=embedding_dim, window=window, min_count=min_word_count, workers=workers)
     # TODO: Build model vocabulary using sentences
+    model.build_vocab(sentences, update=True)
     # TODO: Train word2vec model
-    # model.train(..., callbacks=[W2VLossLogger()])
+    model.train(sentences, total_examples=len(sentences), epochs=epochs, callbacks=[W2VLossLogger()])
     # Save trained model
-    # model.save(output_file)
+    model.save(output_file)
 
     return model
 
+def make_sentences_gutenberg():
+    sentences = []
+    with open('./data/gutenberg.txt') as file:
+        # reading each line   
+        for line in file:
+            temp = []       
+            for word in line.split():
+                temp.append(word)
+            sentences.append(temp)
+
+    return sentences
 
 if __name__ == "__main__":
     # read data/gutenberg.txt in the expected format
-    sentences = ...
+    sentences = make_sentences_gutenberg()
     output_file = "gutenberg_w2v.100d.model"
-    window = 5
+    window = 4
     embedding_dim = 100
-    epochs = 300
+    epochs = 1000
     min_word_count = 10
 
     train_w2v_model(

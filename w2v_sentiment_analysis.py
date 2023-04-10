@@ -7,7 +7,7 @@ import sklearn
 
 SCRIPT_DIRECTORY = os.path.realpath(__file__)
 
-data_dir = os.path.join(SCRIPT_DIRECTORY, "../data/aclImdb/")
+data_dir = os.path.join(SCRIPT_DIRECTORY, "/data/aclImdb/")
 train_dir = os.path.join(data_dir, "train")
 test_dir = os.path.join(data_dir, "test")
 pos_train_dir = os.path.join(train_dir, "pos")
