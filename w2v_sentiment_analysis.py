@@ -4,10 +4,22 @@ import re
 
 import numpy as np
 import sklearn
+import sklearn.model_selection
+import sklearn.linear_model
+
+from w2v_train import W2VLossLogger
+from gensim.models import Word2Vec
+from gensim.models import KeyedVectors
+
+model = Word2Vec.load("gutenberg_w2v.100d.model")
+
+# NUM_W2V_TO_LOAD = 1000000
+# model = KeyedVectors.load_word2vec_format('./data/GoogleNews-vectors-negative300.bin.gz', binary=True,
+# limit=NUM_W2V_TO_LOAD)
 
 SCRIPT_DIRECTORY = os.path.realpath(__file__)
 
-data_dir = os.path.join(SCRIPT_DIRECTORY, "/data/aclImdb/")
+data_dir = "./data/aclImdb/"
 train_dir = os.path.join(data_dir, "train")
 test_dir = os.path.join(data_dir, "test")
 pos_train_dir = os.path.join(train_dir, "pos")
@@ -49,7 +61,7 @@ def preproc_tok(s):
 def read_samples(folder, preprocess=lambda x: x):
     samples = glob.iglob(os.path.join(folder, "*.txt"))
     data = []
-
+    
     for i, sample in enumerate(samples):
         if MAX_NUM_SAMPLES > 0 and i == MAX_NUM_SAMPLES:
             break
@@ -71,28 +83,46 @@ def create_corpus(pos, neg):
 
 def extract_nbow(corpus):
     """Extract neural bag of words representations"""
-    raise NotImplementedError("Implement nbow extractor")
+    nbow_corpus = []
+    for comment in corpus:
+        nbow = np.zeros((100,))
+        for line in comment:
+            for word in line.split():
+                if word not in model.wv.vocab.keys():
+                    continue
+                else:
+                    nbow = nbow + model.wv[word]
+        nbow_corpus.append(nbow)
+        
+    return np.asarray(nbow_corpus) 
 
 
 def train_sentiment_analysis(train_corpus, train_labels):
     """Train a sentiment analysis classifier using NBOW + Logistic regression"""
-    raise NotImplementedError("Implement sentiment analysis training")
+    clf = sklearn.linear_model.LogisticRegression()
+    clf.fit(train_corpus,train_labels)
+    
+    return clf
 
 
-def evaluate_sentiment_analysis(classifier, test_corpus, test_labels):
+def evaluate_sentiment_analysis(clf, test_corpus, test_labels):
     """Evaluate classifier in the test corpus and report accuracy"""
-    raise NotImplementedError("Implement sentiment analysis evaluation")
-
+    y_pred = clf.predict(test_corpus)
+    print('/n')
+    print("acc of clf: " + str(sklearn.metrics.accuracy_score(test_labels, y_pred)))
 
 if __name__ == "__main__":
     # TODO: read Imdb corpus
-    corpus, labels = ...
+    pos = read_samples(pos_train_dir,preprocess) + read_samples(pos_test_dir,preprocess)
+    neg = read_samples(neg_train_dir,preprocess) + read_samples(neg_test_dir,preprocess)
+    corpus,labels = create_corpus(pos,neg)
     nbow_corpus = extract_nbow(corpus)
     (
         train_corpus,
         test_corpus,
         train_labels,
         test_labels,
-    ) = sklearn.model_selection.train_test_split(corpus, labels)
-
+    ) = sklearn.model_selection.train_test_split(nbow_corpus, labels, test_size=0.2)
+    clf = train_sentiment_analysis(train_corpus, train_labels)
+    evaluate_sentiment_analysis(clf, test_corpus, test_labels)
     # TODO: train / evaluate and report accuracy

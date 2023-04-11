@@ -56,7 +56,8 @@ def train_w2v_model(
     """
     workers=multiprocessing.cpu_count()
     # TODO: Instantiate gensim.models.Word2Vec class
-    model = Word2Vec(sentences=sentences, size=embedding_dim, window=window, min_count=min_word_count, workers=workers)
+    model = Word2Vec(sentences=sentences, size=embedding_dim, window=window, min_count=min_word_count,
+    workers=workers, compute_loss=True)
     # TODO: Build model vocabulary using sentences
     model.build_vocab(sentences, update=True)
     # TODO: Train word2vec model
